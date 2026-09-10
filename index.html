@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Расписание преподавателей</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --bg:#F1F4EC;
+    --bg-soft:#E7ECDF;
+    --graphite:#171D19;
+    --graphite-2:#232B26;
+    --white:#FFFFFF;
+    --lime:#A3E635;
+    --lime-deep:#84CC16;
+    --emerald:#10B981;
+    --grey:#6B7280;
+    --grey-soft:#9CA3A0;
+    --line:rgba(23,29,25,0.08);
+    --radius-lg:28px;
+    --radius-md:18px;
+    --radius-sm:12px;
+    --shadow-soft:0 20px 50px -25px rgba(23,29,25,0.35);
+    --font-display:'Unbounded', sans-serif;
+    --font-body:'Inter', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 10% -10%, rgba(163,230,53,0.16), transparent 45%),
+      radial-gradient(circle at 100% 0%, rgba(16,185,129,0.10), transparent 40%),
+      var(--bg);
+    font-family:var(--font-body);
+    color:var(--graphite);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  button:focus-visible, input:focus-visible{outline:3px solid var(--lime-deep);outline-offset:2px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+
+  /* ---------- LOGIN SCREEN ---------- */
+  #loginScreen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .login-card{
+    width:100%;
+    max-width:420px;
+    background:rgba(255,255,255,0.6);
+    backdrop-filter:blur(24px);
+    -webkit-backdrop-filter:blur(24px);
+    border:1px solid rgba(255,255,255,0.7);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-soft);
+    padding:44px 36px;
+    animation:riseIn 0.6s cubic-bezier(.19,1,.22,1) both;
+  }
+  @keyframes riseIn{
+    from{opacity:0; transform:translateY(18px) scale(0.98);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  .login-mark{
+    width:52px;height:52px;border-radius:16px;
+    background:linear-gradient(135deg, var(--lime) 0%, var(--emerald) 100%);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:22px;
+  }
+  .login-mark svg{width:26px;height:26px;}
+  .login-card h1{
+    font-family:var(--font-display);
+    font-size:26px;
+    line-height:1.25;
+    font-weight:700;
+    margin:0 0 8px;
+    color:var(--graphite);
+  }
+  .login-card p{
+    margin:0 0 28px;
+    color:var(--grey);
+    font-size:15px;
+    line-height:1.5;
+  }
+  .google-btn-wrap{display:flex; justify-content:center; margin-top:6px;}
+  .login-hint{
+    margin-top:18px;
+    font-size:13px;
+    color:var(--grey-soft);
+    text-align:center;
+  }
+  .login-error{
+    display:none;
+    align-items:center;
+    gap:8px;
+    background:rgba(239,68,68,0.1);
+    color:#B91C1C;
+    border:1px solid rgba(239,68,68,0.25);
+    padding:12px 14px;
+    border-radius:var(--radius-sm);
+    font-size:13.5px;
+    font-weight:500;
+    margin-top:16px;
+  }
+  .login-error.visible{display:flex; animation:fadeIn .25s ease;}
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+
+  /* ---------- DASHBOARD ---------- */
+  #dashboard{display:none; min-height:100vh; padding:20px 20px 60px;}
+  .shell{max-width:1080px; margin:0 auto;}
+
+  .profile-bar{
+    background:var(--graphite);
+    color:var(--white);
+    border-radius:var(--radius-lg);
+    padding:26px 30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    box-shadow:var(--shadow-soft);
+    margin-bottom:18px;
+  }
+  .profile-info{display:flex; align-items:center; gap:18px; min-width:0;}
+  .avatar{
+    width:56px;height:56px;border-radius:16px;flex-shrink:0;
+    background:linear-gradient(135deg, var(--lime) 0%, var(--emerald) 120%);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);
+    font-weight:700; font-size:20px; color:var(--graphite);
+  }
+  .profile-text{min-width:0;}
+  .profile-text h2{
+    margin:0; font-family:var(--font-display); font-weight:700;
+    font-size:clamp(20px,3vw,28px); line-height:1.2;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .profile-text p{margin:4px 0 0; color:rgba(255,255,255,0.65); font-size:14.5px; font-weight:500;}
+  .logout-btn{
+    flex-shrink:0;
+    display:flex; align-items:center; gap:8px;
+    padding:11px 18px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:var(--radius-sm);
+    color:var(--white);
+    font-weight:600; font-size:14px;
+    transition:background .2s ease;
+  }
+  .logout-btn:hover{background:rgba(239,68,68,0.25);}
+  .logout-btn svg{width:16px;height:16px;}
+
+  .bento{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    gap:18px;
+    align-items:start;
+  }
+  @media (max-width:760px){
+    .bento{grid-template-columns:1fr;}
+  }
+
+  .panel{
+    background:var(--white);
+    border-radius:var(--radius-lg);
+    padding:22px;
+    box-shadow:var(--shadow-soft);
+  }
+  .panel h3{
+    font-family:var(--font-display);
+    font-size:14px;
+    font-weight:600;
+    margin:0 0 16px;
+    color:var(--graphite);
+  }
+
+  .day-list{display:flex; flex-direction:column; gap:8px;}
+  @media (max-width:760px){
+    .day-list{flex-direction:row; overflow-x:auto; padding-bottom:4px; gap:8px;}
+    .day-list::-webkit-scrollbar{display:none;}
+  }
+  .day-pill{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:13px 16px;
+    border-radius:var(--radius-sm);
+    background:var(--bg-soft);
+    transition:background .2s ease, transform .15s ease;
+    flex-shrink:0;
+    min-width:0;
+  }
+  @media (max-width:760px){
+    .day-pill{flex-direction:column; align-items:flex-start; gap:2px; min-width:92px;}
+  }
+  .day-pill:hover{transform:translateY(-1px);}
+  .day-pill .dname{font-weight:600; font-size:14.5px;}
+  .day-pill .ddate{font-size:12.5px; color:var(--grey); font-weight:500;}
+  .day-pill.today .ddate{color:var(--emerald); font-weight:700;}
+  .day-pill.active{background:var(--graphite); color:var(--white);}
+  .day-pill.active .ddate{color:var(--lime);}
+
+  .schedule-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom:16px; flex-wrap:wrap; gap:6px;
+  }
+  .schedule-head h3{margin:0; font-size:19px;}
+  .schedule-head span{color:var(--grey); font-size:13.5px; font-weight:500;}
+
+  .lesson-card{
+    display:flex; align-items:center; gap:16px;
+    background:var(--bg-soft);
+    border-radius:var(--radius-md);
+    padding:16px 18px;
+    margin-bottom:10px;
+    animation:cardIn .45s cubic-bezier(.19,1,.22,1) both;
+    transition:transform .15s ease, box-shadow .2s ease;
+  }
+  .lesson-card:hover{transform:translateX(2px); box-shadow:0 8px 24px -14px rgba(23,29,25,0.35);}
+  @keyframes cardIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .lesson-num{
+    flex-shrink:0;
+    width:42px;height:42px;border-radius:12px;
+    background:var(--graphite);
+    color:var(--lime);
+    font-family:var(--font-display);
+    font-weight:700; font-size:16px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .lesson-body{min-width:0; flex:1;}
+  .lesson-body .lname{font-weight:600; font-size:15.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lesson-body .ltime{display:flex; align-items:center; gap:6px; margin-top:3px; color:var(--grey); font-size:13px; font-weight:500;}
+  .lesson-body .ltime svg{width:13px;height:13px; flex-shrink:0;}
+
+  .empty-state{
+    text-align:center; padding:50px 20px;
+    color:var(--grey);
+  }
+  .empty-state .em-icon{
+    width:52px;height:52px; margin:0 auto 14px;
+    border-radius:16px; background:var(--bg-soft);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .empty-state .em-icon svg{width:24px;height:24px; color:var(--grey-soft);}
+  .empty-state p{margin:0; font-weight:500; font-size:14.5px;}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L4 6V11C4 15.5 7.4 19.7 12 21C16.6 19.7 20 15.5 20 11V6L12 2Z" stroke="#171D19" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>Расписание преподавателей</h1>
+    <p>Войдите через свой рабочий Gmail-аккаунт, чтобы открыть свой кабинет.</p>
+    <div class="google-btn-wrap">
+      <div id="gSignInButton"></div>
+    </div>
+    <div class="login-error" id="loginError">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B91C1C" stroke-width="2"/><path d="M12 8V13" stroke="#B91C1C" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#B91C1C"/></svg>
+      <span>Этот Gmail-адрес не найден в списке преподавателей. Обратитесь к администратору.</span>
+    </div>
+    <p class="login-hint">Доступ есть только у почт, добавленных администратором в список.</p>
+  </div>
+</div>
+
+<!-- ================= DASHBOARD ================= -->
+<div id="dashboard">
+  <div class="shell">
+    <div class="profile-bar">
+      <div class="profile-info">
+        <div class="avatar" id="avatarInitials">--</div>
+        <div class="profile-text">
+          <h2 id="teacherName">Имя преподавателя</h2>
+          <p id="teacherSubject">Предмет</p>
+        </div>
+      </div>
+      <button class="logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 4H5C3.9 4 3 4.9 3 6V18C3 19.1 3.9 20 5 20H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        К списку
+      </button>
+    </div>
+
+    <div class="bento">
+      <div class="panel">
+        <h3>Дни недели</h3>
+        <div class="day-list" id="dayList"></div>
+      </div>
+
+      <div class="panel">
+        <div class="schedule-head">
+          <h3 id="scheduleDayTitle">День</h3>
+          <span id="scheduleDayDate"></span>
+        </div>
+        <div id="scheduleList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   БЛОК ДАННЫХ (DATA) — редактируйте здесь
+   -------------------------------------------------------------------------
+   Чтобы добавить нового преподавателя — скопируйте один объект целиком
+   (от { до соответствующей }) и вставьте его в массив DATA ниже, изменив:
+     - email    — Gmail преподавателя, ТОЧНО как в его Google-аккаунте
+     - name     — ФИО преподавателя
+     - subject  — преподаваемый предмет
+     - schedule — расписание по дням недели ("Пн","Вт","Ср","Чт","Пт")
+                  каждый день — массив уроков вида:
+                  { lessonNum: 1, name: "Название предмета/пары" }
+                  lessonNum должен совпадать с номером пары из CALL_SCHEDULE
+                  ниже, чтобы время подставилось автоматически.
+                  Если в этот день пар нет — оставьте пустой массив: []
+   ========================================================================= */
+const DATA = [
+  {
+    email: "irina.sergeevna@gmail.com",
+    name: "Ирина Сергеевна",
+    subject: "Математика",
+    schedule: {
+      "Пн": [
+        { lessonNum: 1, name: "Алгебра" },
+        { lessonNum: 2, name: "Геометрия" },
+        { lessonNum: 4, name: "Алгебра" }
+      ],
+      "Вт": [
+        { lessonNum: 1, name: "Геометрия" },
+        { lessonNum: 3, name: "Алгебра" }
+      ],
+      "Ср": [
+        { lessonNum: 2, name: "Алгебра" },
+        { lessonNum: 3, name: "Геометрия" },
+        { lessonNum: 5, name: "Консультация" }
+      ],
+      "Чт": [
+        { lessonNum: 1, name: "Алгебра" }
+      ],
+      "Пт": [
+        { lessonNum: 2, name: "Геометрия" },
+        { lessonNum: 4, name: "Алгебра" }
+      ]
+    }
+  },
+  {
+    // Шаблон №2 — пустой, заполните своими данными
+    email: "email2@gmail.com",
+    name: "Имя Отчество",
+    subject: "Предмет",
+    schedule: {
+      "Пн": [],
+      "Вт": [],
+      "Ср": [],
+      "Чт": [],
+      "Пт": []
+    }
+  },
+  {
+    // Шаблон №3 — пустой, заполните своими данными
+    email: "email3@gmail.com",
+    name: "Имя Отчество",
+    subject: "Предмет",
+    schedule: {
+      "Пн": [],
+      "Вт": [],
+      "Ср": [],
+      "Чт": [],
+      "Пт": []
+    }
+  }
+];
+
+/* =========================================================================
+   РАСПИСАНИЕ ЗВОНКОВ (CALL_SCHEDULE)
+   -------------------------------------------------------------------------
+   Составлено по факультетскому расписанию звонков (I и II ауысым объединены
+   в сквозную нумерацию пар 1–7 на каждый день). lessonNum здесь должен
+   совпадать с lessonNum в расписании преподавателя выше.
+   ========================================================================= */
+const CALL_SCHEDULE = {
+  "Пн": [
+    { lessonNum: 1, start: "08:00", end: "09:20" },
+    { lessonNum: 2, start: "09:30", end: "10:50" },
+    { lessonNum: 3, start: "11:05", end: "12:25" },
+    { lessonNum: 4, start: "12:35", end: "13:55" },
+    { lessonNum: 5, start: "14:05", end: "15:25" },
+    { lessonNum: 6, start: "15:40", end: "17:00" },
+    { lessonNum: 7, start: "17:10", end: "18:30" }
+  ],
+  "Вт": [
+    { lessonNum: 1, start: "08:00", end: "09:20" },
+    { lessonNum: 2, start: "09:30", end: "10:50" },
+    { lessonNum: 3, start: "11:05", end: "12:25" },
+    { lessonNum: 4, start: "12:35", end: "13:55" },
+    { lessonNum: 5, start: "14:05", end: "15:25" },
+    { lessonNum: 6, start: "15:40", end: "17:00" },
+    { lessonNum: 7, start: "17:10", end: "18:30" }
+  ],
+  "Ср": [
+    { lessonNum: 1, start: "08:00", end: "09:20" },
+    { lessonNum: 2, start: "09:30", end: "10:50" },
+    { lessonNum: 3, start: "11:05", end: "12:25" },
+    { lessonNum: 4, start: "12:35", end: "13:55" },
+    { lessonNum: 5, start: "14:05", end: "15:25" },
+    { lessonNum: 6, start: "15:40", end: "17:00" },
+    { lessonNum: 7, start: "17:10", end: "18:30" }
+  ],
+  "Чт": [
+    { lessonNum: 1, start: "08:00", end: "09:20" },
+    { lessonNum: 2, start: "09:30", end: "10:50" },
+    { lessonNum: 3, start: "11:05", end: "12:25" },
+    { lessonNum: 4, start: "12:35", end: "13:55" },
+    { lessonNum: 5, start: "14:05", end: "15:25" },
+    { lessonNum: 6, start: "15:40", end: "17:00" },
+    { lessonNum: 7, start: "17:10", end: "18:30" }
+  ],
+  "Пт": [
+    { lessonNum: 1, start: "08:00", end: "09:20" },
+    { lessonNum: 2, start: "09:30", end: "10:55" },
+    { lessonNum: 3, start: "11:05", end: "12:25" },
+    { lessonNum: 4, start: "12:35", end: "13:55" },
+    { lessonNum: 5, start: "14:05", end: "15:25" },
+    { lessonNum: 6, start: "15:40", end: "17:00" },
+    { lessonNum: 7, start: "17:10", end: "18:30" }
+  ]
+};
+
+/* =========================================================================
+   ЛОГИКА ПРИЛОЖЕНИЯ
+   ========================================================================= */
+const DAYS = ["Пн", "Вт", "Ср", "Чт", "Пт"];
+const DAY_FULL = { "Пн": "Понедельник", "Вт": "Вторник", "Ср": "Среда", "Чт": "Четверг", "Пт": "Пятница" };
+
+let currentTeacher = null;
+let selectedDay = null;
+
+function jsDayToKey(jsDay){
+  // JS: 0=Вс,1=Пн,...6=Сб  -> map to Пн..Пт, weekend defaults to Пн
+  const map = { 1:"Пн", 2:"Вт", 3:"Ср", 4:"Чт", 5:"Пт" };
+  return map[jsDay] || "Пн";
+}
+
+function getWeekDates(){
+  // returns { "Пн": Date, "Вт": Date, ... } for the current Mon-Fri week
+  const today = new Date();
+  const jsDay = today.getDay();
+  const diffToMonday = jsDay === 0 ? -6 : 1 - jsDay;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diffToMonday);
+  const result = {};
+  DAYS.forEach((key, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    result[key] = d;
+  });
+  return result;
+}
+
+function formatDate(d){
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+}
+
+function initials(name){
+  return name.trim().split(/\s+/).slice(0,2).map(w => w[0] || "").join("").toUpperCase();
+}
+
+/* ---------- ВХОД ЧЕРЕЗ GOOGLE ---------- */
+/*
+  ВАЖНО: чтобы вход заработал, нужно вставить свой Client ID вместо
+  "ВСТАВЬТЕ_СЮДА_ВАШ_CLIENT_ID.apps.googleusercontent.com".
+
+  Как получить Client ID (бесплатно, 5 минут):
+  1. Зайти на https://console.cloud.google.com/
+  2. Создать проект (или выбрать существующий).
+  3. Меню "APIs & Services" → "Credentials" → "Create Credentials" → "OAuth client ID".
+  4. Тип приложения: "Web application".
+  5. В "Authorized JavaScript origins" указать адрес, где будет висеть сайт
+     (например https://ваш-домен.ру, или http://localhost:5500 для теста).
+  6. Скопировать получившийся Client ID и вставить его ниже.
+*/
+const GOOGLE_CLIENT_ID = "829506338902-9krma26t51ttrsa26o820rngto7kkfoj.apps.googleusercontent.com";
+
+function decodeJwt(token){
+  const payload = token.split('.')[1];
+  const decoded = decodeURIComponent(atob(payload.replace(/-/g,'+').replace(/_/g,'/'))
+    .split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+  return JSON.parse(decoded);
+}
+
+function handleGoogleSignIn(response){
+  const payload = decodeJwt(response.credential);
+  const email = (payload.email || '').toLowerCase().trim();
+  const found = DATA.find(t => t.email.toLowerCase().trim() === email);
+  const loginError = document.getElementById('loginError');
+  if (found){
+    loginError.classList.remove('visible');
+    selectTeacher(found);
+  } else {
+    loginError.classList.add('visible');
+  }
+}
+
+if (window.google && google.accounts && google.accounts.id){
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleSignIn
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('gSignInButton'),
+    { theme: 'outline', size: 'large', width: 260, text: 'signin_with' }
+  );
+}
+
+function selectTeacher(teacher){
+  currentTeacher = teacher;
+  const todayKey = jsDayToKey(new Date().getDay());
+  selectedDay = todayKey;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  renderDashboard();
+}
+
+/* ---------- ВЫХОД (назад к экрану входа) ---------- */
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  currentTeacher = null;
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginError').classList.remove('visible');
+});
+
+/* ---------- RENDER DASHBOARD ---------- */
+function renderDashboard(){
+  document.getElementById('teacherName').textContent = currentTeacher.name;
+  document.getElementById('teacherSubject').textContent = currentTeacher.subject;
+  document.getElementById('avatarInitials').textContent = initials(currentTeacher.name);
+  renderDayList();
+  renderSchedule();
+}
+
+function renderDayList(){
+  const weekDates = getWeekDates();
+  const todayKey = jsDayToKey(new Date().getDay());
+  const list = document.getElementById('dayList');
+  list.innerHTML = '';
+  DAYS.forEach(key => {
+    const pill = document.createElement('button');
+    pill.className = 'day-pill' + (key === selectedDay ? ' active' : '') + (key === todayKey ? ' today' : '');
+    pill.innerHTML = `<span class="dname">${DAY_FULL[key]}</span><span class="ddate">${formatDate(weekDates[key])}</span>`;
+    pill.addEventListener('click', () => {
+      selectedDay = key;
+      renderDayList();
+      renderSchedule();
+    });
+    list.appendChild(pill);
+  });
+}
+
+function clockIcon(){
+  return `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function renderSchedule(){
+  const weekDates = getWeekDates();
+  document.getElementById('scheduleDayTitle').textContent = DAY_FULL[selectedDay];
+  document.getElementById('scheduleDayDate').textContent = formatDate(weekDates[selectedDay]);
+
+  const container = document.getElementById('scheduleList');
+  container.innerHTML = '';
+
+  const lessons = (currentTeacher.schedule[selectedDay] || []).slice()
+    .sort((a, b) => a.lessonNum - b.lessonNum);
+
+  if (lessons.length === 0){
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="em-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7H20M4 7V19C4 20.1 4.9 21 6 21H18C19.1 21 20 20.1 20 19V7M4 7L6 3H18L20 7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </div>
+        <p>На этот день пар не запланировано</p>
+      </div>`;
+    return;
+  }
+
+  const callsByNum = {};
+  (CALL_SCHEDULE[selectedDay] || []).forEach(c => { callsByNum[c.lessonNum] = c; });
+
+  lessons.forEach((lesson, idx) => {
+    const call = callsByNum[lesson.lessonNum];
+    const timeText = call ? `${call.start} – ${call.end}` : 'время не задано';
+    const card = document.createElement('div');
+    card.className = 'lesson-card';
+    card.style.animationDelay = (idx * 0.05) + 's';
+    card.innerHTML = `
+      <div class="lesson-num">${lesson.lessonNum}</div>
+      <div class="lesson-body">
+        <div class="lname">${lesson.name}</div>
+        <div class="ltime">${clockIcon()}<span>${timeText} · ${lesson.lessonNum}-я пара</span></div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+</script>
+</body>
+</html>
