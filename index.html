@@ -45,6 +45,33 @@
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
   button:focus-visible, input:focus-visible{outline:3px solid var(--lime-deep);outline-offset:2px;}
 
+  /* ---------- LANGUAGE SWITCH ---------- */
+  .lang-switch{
+    position:fixed; top:18px; right:18px; z-index:100;
+    display:flex; gap:4px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.7);
+    border-radius:999px;
+    padding:4px;
+    box-shadow:var(--shadow-soft);
+  }
+  .lang-btn{
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:.02em;
+    color:var(--grey);
+    transition:background .2s ease, color .2s ease;
+  }
+  .lang-btn.active{background:var(--graphite); color:var(--lime);}
+  .lang-btn:hover:not(.active){color:var(--graphite);}
+  @media (max-width:480px){
+    .lang-switch{top:12px; right:12px;}
+    .lang-btn{padding:6px 11px; font-size:11.5px;}
+  }
+
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
   }
@@ -260,6 +287,12 @@
 </head>
 <body>
 
+<!-- ================= LANGUAGE SWITCH ================= -->
+<div class="lang-switch">
+  <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">RU</button>
+  <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">KZ</button>
+</div>
+
 <!-- ================= LOGIN SCREEN ================= -->
 <div id="loginScreen">
   <div class="login-card">
@@ -268,16 +301,16 @@
         <path d="M12 2L4 6V11C4 15.5 7.4 19.7 12 21C16.6 19.7 20 15.5 20 11V6L12 2Z" stroke="#171D19" stroke-width="2" stroke-linejoin="round"/>
       </svg>
     </div>
-    <h1>Расписание преподавателей</h1>
-    <p>Войдите через свой рабочий Gmail-аккаунт, чтобы открыть свой кабинет.</p>
+    <h1 data-i18n="loginTitle">Расписание преподавателей</h1>
+    <p data-i18n="loginSubtitle">Войдите через свой рабочий Gmail-аккаунт, чтобы открыть свой кабинет.</p>
     <div class="google-btn-wrap">
       <div id="gSignInButton"></div>
     </div>
     <div class="login-error" id="loginError">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#B91C1C" stroke-width="2"/><path d="M12 8V13" stroke="#B91C1C" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="#B91C1C"/></svg>
-      <span>Этот Gmail-адрес не найден в списке преподавателей. Обратитесь к администратору.</span>
+      <span data-i18n="loginError">Этот Gmail-адрес не найден в списке преподавателей. Обратитесь к администратору.</span>
     </div>
-    <p class="login-hint">Доступ есть только у почт, добавленных администратором в список.</p>
+    <p class="login-hint" data-i18n="loginHint">Доступ есть только у почт, добавленных администратором в список.</p>
   </div>
 </div>
 
@@ -294,19 +327,19 @@
       </div>
       <button class="logout-btn" id="logoutBtn">
         <svg viewBox="0 0 24 24" fill="none"><path d="M15 17L20 12L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 4H5C3.9 4 3 4.9 3 6V18C3 19.1 3.9 20 5 20H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        К списку
+        <span data-i18n="logoutBtn">К списку</span>
       </button>
     </div>
 
     <div class="bento">
       <div class="panel">
-        <h3>Дни недели</h3>
+        <h3 data-i18n="daysHeader">Дни недели</h3>
         <div class="day-list" id="dayList"></div>
       </div>
 
       <div class="panel">
         <div class="schedule-head">
-          <h3 id="scheduleDayTitle">День</h3>
+          <h3 id="scheduleDayTitle" data-i18n="scheduleDayDefault">День</h3>
           <span id="scheduleDayDate"></span>
         </div>
         <div id="scheduleList"></div>
@@ -444,10 +477,78 @@ const CALL_SCHEDULE = {
 };
 
 /* =========================================================================
+   ПЕРЕВОДЫ (I18N) — RU / KZ
+   -------------------------------------------------------------------------
+   Внутренние ключи дней ("Пн","Вт"...) остаются на русском во всех местах
+   кода (DATA, CALL_SCHEDULE) — меняются только подписи, которые видит
+   пользователь.
+   ========================================================================= */
+const I18N = {
+  ru: {
+    pageTitle: "Расписание преподавателей",
+    loginTitle: "Расписание преподавателей",
+    loginSubtitle: "Войдите через свой рабочий Gmail-аккаунт, чтобы открыть свой кабинет.",
+    loginError: "Этот Gmail-адрес не найден в списке преподавателей. Обратитесь к администратору.",
+    loginHint: "Доступ есть только у почт, добавленных администратором в список.",
+    logoutBtn: "К списку",
+    daysHeader: "Дни недели",
+    scheduleDayDefault: "День",
+    emptyState: "На этот день пар не запланировано",
+    noTime: "время не задано",
+    lessonSuffix: "-я пара",
+    days: { "Пн": "Понедельник", "Вт": "Вторник", "Ср": "Среда", "Чт": "Четверг", "Пт": "Пятница" },
+    months: ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"]
+  },
+  kk: {
+    pageTitle: "Мұғалімдер кестесі",
+    loginTitle: "Мұғалімдер кестесі",
+    loginSubtitle: "Кабинетіңізді ашу үшін жұмыс Gmail-аккаунтыңыз арқылы кіріңіз.",
+    loginError: "Бұл Gmail мекенжайы мұғалімдер тізімінен табылмады. Әкімшіге хабарласыңыз.",
+    loginHint: "Тізімге тек әкімші қосқан пошталардың қолжетімділігі бар.",
+    logoutBtn: "Тізімге",
+    daysHeader: "Апта күндері",
+    scheduleDayDefault: "Күн",
+    emptyState: "Бұл күнге сабақтар жоспарланбаған",
+    noTime: "уақыты көрсетілмеген",
+    lessonSuffix: "-сабақ",
+    days: { "Пн": "Дүйсенбі", "Вт": "Сейсенбі", "Ср": "Сәрсенбі", "Чт": "Бейсенбі", "Пт": "Жұма" },
+    months: ["қаңтар","ақпан","наурыз","сәуір","мамыр","маусым","шілде","тамыз","қыркүйек","қазан","қараша","желтоқсан"]
+  }
+};
+
+let currentLang = localStorage.getItem('scheduleLang') === 'kk' ? 'kk' : 'ru';
+
+function t(key){
+  return I18N[currentLang][key];
+}
+
+function applyTranslations(){
+  document.title = t('pageTitle');
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[currentLang][key] !== undefined) el.textContent = I18N[currentLang][key];
+  });
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === currentLang);
+  });
+  if (currentTeacher){
+    renderDayList();
+    renderSchedule();
+  }
+}
+
+function setLang(lang){
+  if (lang !== 'ru' && lang !== 'kk') return;
+  currentLang = lang;
+  localStorage.setItem('scheduleLang', lang);
+  applyTranslations();
+}
+
+/* =========================================================================
    ЛОГИКА ПРИЛОЖЕНИЯ
    ========================================================================= */
 const DAYS = ["Пн", "Вт", "Ср", "Чт", "Пт"];
-const DAY_FULL = { "Пн": "Понедельник", "Вт": "Вторник", "Ср": "Среда", "Чт": "Четверг", "Пт": "Пятница" };
 
 let currentTeacher = null;
 let selectedDay = null;
@@ -475,6 +576,9 @@ function getWeekDates(){
 }
 
 function formatDate(d){
+  if (currentLang === 'kk'){
+    return d.getDate() + ' ' + t('months')[d.getMonth()];
+  }
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
 }
 
@@ -546,6 +650,9 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   document.getElementById('loginError').classList.remove('visible');
 });
 
+/* ---------- ПРИМЕНЯЕМ ЯЗЫК ПРИ ЗАГРУЗКЕ ---------- */
+applyTranslations();
+
 /* ---------- RENDER DASHBOARD ---------- */
 function renderDashboard(){
   document.getElementById('teacherName').textContent = currentTeacher.name;
@@ -563,7 +670,7 @@ function renderDayList(){
   DAYS.forEach(key => {
     const pill = document.createElement('button');
     pill.className = 'day-pill' + (key === selectedDay ? ' active' : '') + (key === todayKey ? ' today' : '');
-    pill.innerHTML = `<span class="dname">${DAY_FULL[key]}</span><span class="ddate">${formatDate(weekDates[key])}</span>`;
+    pill.innerHTML = `<span class="dname">${t('days')[key]}</span><span class="ddate">${formatDate(weekDates[key])}</span>`;
     pill.addEventListener('click', () => {
       selectedDay = key;
       renderDayList();
@@ -579,7 +686,7 @@ function clockIcon(){
 
 function renderSchedule(){
   const weekDates = getWeekDates();
-  document.getElementById('scheduleDayTitle').textContent = DAY_FULL[selectedDay];
+  document.getElementById('scheduleDayTitle').textContent = t('days')[selectedDay];
   document.getElementById('scheduleDayDate').textContent = formatDate(weekDates[selectedDay]);
 
   const container = document.getElementById('scheduleList');
@@ -594,7 +701,7 @@ function renderSchedule(){
         <div class="em-icon">
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 7H20M4 7V19C4 20.1 4.9 21 6 21H18C19.1 21 20 20.1 20 19V7M4 7L6 3H18L20 7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
         </div>
-        <p>На этот день пар не запланировано</p>
+        <p>${t('emptyState')}</p>
       </div>`;
     return;
   }
@@ -604,7 +711,7 @@ function renderSchedule(){
 
   lessons.forEach((lesson, idx) => {
     const call = callsByNum[lesson.lessonNum];
-    const timeText = call ? `${call.start} – ${call.end}` : 'время не задано';
+    const timeText = call ? `${call.start} – ${call.end}` : t('noTime');
     const card = document.createElement('div');
     card.className = 'lesson-card';
     card.style.animationDelay = (idx * 0.05) + 's';
@@ -612,7 +719,7 @@ function renderSchedule(){
       <div class="lesson-num">${lesson.lessonNum}</div>
       <div class="lesson-body">
         <div class="lname">${lesson.name}</div>
-        <div class="ltime">${clockIcon()}<span>${timeText} · ${lesson.lessonNum}-я пара</span></div>
+        <div class="ltime">${clockIcon()}<span>${timeText} · ${lesson.lessonNum}${t('lessonSuffix')}</span></div>
       </div>`;
     container.appendChild(card);
   });
